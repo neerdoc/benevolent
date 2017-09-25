@@ -5,4 +5,8 @@ This project aims to create an easily deploy-able agile open source development 
 The name is of course an acronym:
 deploy-aBle agilE opeN sourcE deVelopment tOoL suitE eNvironmenT
 
+This project home is at https://neerdoc.github.io/benevolent/
+
+
+
 Logo credit goes to: ผู้สร้างสรรค์ผลงาน/ส่งข้อมูลเก็บในคลังข้อมูลเสรีวิกิมีเดียคอมมอนส์ - เทวประภาส มากคล้าย - Own work, CC BY 3.0, https://commons.wikimedia.org/w/index.php?curid=7318085
