@@ -102,3 +102,9 @@ ENV/
 
 
 *~
+
+data
+data/*
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
