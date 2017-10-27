@@ -18,7 +18,10 @@ resource "digitalocean_droplet" "docker_swarm_node" {
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
   region      = "${element(var.region, count.index)}"
-  volume_ids  = ["${element(digitalocean_volume.bedrock.*.id, count.index)}"]
+#  volume_ids  = ["${element(digitalocean_volume.bedrock.*.id, count.index)}"]
+#  single_id   = "${digitalocean_volume.bedrock.*.id[count.index]}"
+  volume_ids  = ["${digitalocean_volume.bedrock.*.id[count.index]}"]
+#  volume_ids  = ["${digitalocean_volume.bedrock.*.id[count.index]}"]
   ssh_keys    = ["${var.ssh_key_list}"]
   user_data   = <<EOF
 #cloud-config
@@ -73,7 +76,7 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force"
+      "docker swarm leave --force && sleep 10"
     ]
   }
 
@@ -82,10 +85,14 @@ EOF
   #########################
   provisioner "remote-exec" {
     inline = [
-      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)}",
+      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${digitalocean_volume.bedrock.*.name[count.index]}",
       "sudo mkdir -p /mnt/storage",
-      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)} /mnt/storage",
-      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${digitalocean_volume.bedrock.*.name[count.index]} /mnt/storage",
+      "echo /dev/disk/by-id/scsi-0DO_Volume_${digitalocean_volume.bedrock.*.name[count.index]} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+#      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)}",
+#      "sudo mkdir -p /mnt/storage",
+#      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)} /mnt/storage",
+#      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(digitalocean_volume.bedrock.*.name, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
     ]
   }
 }

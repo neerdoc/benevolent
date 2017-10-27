@@ -53,7 +53,7 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force"
+      "docker swarm leave --force && sleep 10"
     ]
   }
   provisioner "local-exec" {

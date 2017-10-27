@@ -82,19 +82,19 @@ variable "swarm_name" {
   default = "skynet"
 }
 
-variable "swarm_master_count" {
+variable "swarm_manager_count" {
   description = "Number of master nodes."
-  default = "1"
+  default = "2"
 }
 
-variable "swarm_agent_count" {
+variable "swarm_worker_count" {
   description = "Number of agents to deploy"
-  default = "1"
+  default = "2"
 }
 
 variable "swarm_volume_size" {
   description = "Persistent storage size in GB."
-  default = "1"
+  default = "2"
 }
 
 variable "swarm_storage_path" {

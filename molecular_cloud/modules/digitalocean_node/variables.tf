@@ -17,6 +17,16 @@ variable "node_type" {
   description = "Type of node. manager or worker"
 }
 
+variable "vol_ids" {
+  description = "Place holder for volume id."
+  type        = "list"
+}
+
+variable "vol_names" {
+  description = "Place holder for volume name."
+  type        = "list"
+}
+
 variable "manager_address" {
   description = "IP address of the initial master node."
 }
@@ -38,14 +48,14 @@ variable "region" {
   type        = "list"
 }
 
-variable "volume_size" {
-  description = "Size of persistent disk in GB."
-  default     = 1
-}
+#variable "volume_size" {
+#  description = "Size of persistent disk in GB."
+#  default     = 1
+#}
 
-variable "volume_description" {
-  description = "Description of volume."
-}
+#variable "volume_description" {
+#  description = "Description of volume."
+#}
 
 variable "swarm_token_dir" {
   description = "Directory to store token on remote host."

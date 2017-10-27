@@ -1,0 +1,37 @@
+# This is where we define what should be created in the solar system and in what
+# order. Destruction will go the oposite direction. Changes should be done here
+# and then applied to the system.
+
+################################################################################
+#### Define all system variables here. Reuse them on the planets below.
+################################################################################
+sun:
+  system_name:
+    description:  "Name of the cluster, used also for networking."
+    default:      "skynet"
+  public_key:
+    description:  "SSH public key file."
+    default:      "data/do-key.pub"
+  private_key:
+    description:  "SSH private key file."
+    default:      "data/do-key"
+  do_token:
+    description:  "Your DigitalOcean API key"
+  region:
+    description:  "DigitalOcean Region"
+    type:         "list"
+    default:
+      - fra1
+      - sgp1
+      - nyc1
+
+################################################################################
+#### Define all the planets here. Each one will be created accordingly.
+################################################################################
+planets:
+  account:
+    count: 1
+    variables:
+      - do_token
+      - system_name
+      - public_key

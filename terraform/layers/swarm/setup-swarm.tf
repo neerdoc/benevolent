@@ -1,1 +1,0 @@
-../../setup-swarm.tf
