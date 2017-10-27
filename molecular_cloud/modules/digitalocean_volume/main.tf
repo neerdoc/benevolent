@@ -3,8 +3,8 @@
 ##################################################################################################################
 resource "digitalocean_volume" "bedrock" {
   count       = "${var.count}"
-  region      = "${element(var.region, count.index)}"
-  name        = "${format("${var.swarm_name}-bedrock-${var.node_type}-%02d", count.index)}"
+  region      = "${var.region}"
+  name        = "${format("${var.system_name}-bedrock-${var.node_type}-${var.index}")}"
   size        = "${var.volume_size}"
   description = "${var.volume_description}"
 }

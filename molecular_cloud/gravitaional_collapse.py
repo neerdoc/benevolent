@@ -6,9 +6,9 @@ Module documentation.
 # Imports
 import yaml
 from colorama import Fore
-from os import makedirs, path, listdir
+from os import makedirs, path, listdir, chdir, getcwd
 from shutil import copyfile
-from python_terraform import Terraform, IsFlagged, IsNotFlagged
+from python_terraform import Terraform, IsNotFlagged
 import argparse
 
 # Parse arguments
@@ -65,18 +65,29 @@ def plan_collapse():
             recursive_overwrite(src_dir, target_dir)
             # Create the variables FileExistsError
             with open(target_dir + '/variables.tf', 'w') as out:
-                for satellite in planet['variables']:
-                    out.write('variable "' + satellite + '" {\n')
-                    for agency, orbit in solar_system['sun'][satellite].items():
-                        if type(orbit) == str:
+                for sputnik in planet['variables']:
+                    out.write('variable "' + sputnik + '" {\n')
+                    for agency, orbit in solar_system['sun'][sputnik].items():
+                        if agency == 'auto':
+                            out.write('  ' +
+                                      'default = "{:02}"\n'.format(moon))
+                        elif agency == 'single':
+                            out.write('  default = "' +
+                                      orbit[moon % len(orbit)] + '"\n')
+                        elif type(orbit) == str:
                             out.write('  ' + agency + ' = "' + orbit + '"\n')
                         elif type(orbit) == list:
-                            out.write('  ' + agency + ' = "[')
+                            out.write('  ' + agency + ' = [')
                             for item in orbit:
                                 out.write('"' + item + '" ,')
                             out.write(']\n')
+                        elif type(orbit) == int:
+                            out.write('  ' +
+                                      agency + ' = "' +
+                                      str(orbit) + '"\n')
                         else:
-                            print(Fore.RED + 'Oops.')
+                            print(Fore.RED + 'Oops. Do not now what this is.')
+                            exit(2)
                     out.write('}\n')
 
 
@@ -94,8 +105,12 @@ def check_terraform(data):
 # Execute terraform for all planned planets
 def perform_terraforming(action):
     tf = Terraform()
+    base_dir = getcwd()
+    print('PWD = ')
+    print(base_dir)
     for planet in planet_tracks:
-        print('Terraforming ' + Fore.CYAN + planet)
+        print('Terraforming ' + Fore.CYAN + planet + Fore.RESET)
+        chdir(base_dir + '/' + planet)
         if action == 'destroy':
             choice = input(Fore.RED +
                            'Are you sure you want to destroy everything?!\n\
@@ -104,7 +119,7 @@ Anything other than "yes" will exit!')
                 print(Fore.RED + 'Ufa! That was close!')
                 exit(0)
         check_terraform(getattr(tf, action)(
-            planet,
+            '',
             no_color=IsNotFlagged,
             capture_output=False
         ))

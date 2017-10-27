@@ -11,19 +11,24 @@ sun:
     default:      "skynet"
   public_key:
     description:  "SSH public key file."
-    default:      "data/do-key.pub"
+    default:      "../../../../data/do-key.pub"
   private_key:
     description:  "SSH private key file."
-    default:      "data/do-key"
+    default:      "../../../../data/do-key"
   do_token:
     description:  "Your DigitalOcean API key"
   region:
     description:  "DigitalOcean Region"
-    type:         "list"
-    default:
+    single:
       - fra1
       - sgp1
       - nyc1
+  volume_size:
+    description:  "Size of the syncronized disks in GB."
+    default:      1
+  index:
+    description:  "Index of the current node. Is set automatically!"
+    auto:         True
 
 ################################################################################
 #### Define all the planets here. Each one will be created accordingly.
@@ -35,3 +40,13 @@ planets:
       - do_token
       - system_name
       - public_key
+  swarm-manager:
+    count: 2
+    variables:
+      - do_token
+      - system_name
+      - public_key
+      - private_key
+      - volume_size
+      - index
+      - region
