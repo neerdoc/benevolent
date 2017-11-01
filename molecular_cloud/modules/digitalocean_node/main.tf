@@ -1,36 +1,13 @@
 ##################################################################################################################
-# Create the disk
-##################################################################################################################
-#resource "digitalocean_volume" "bedrock" {
-#  count       = "${var.count}"
-#  region      = "${element(var.region, count.index)}"
-#  name        = "${format("${var.swarm_name}-bedrock-${var.node_type}-%02d", count.index)}"
-#  size        = "${var.volume_size}"
-#  description = "${var.volume_description}"
-#}
-
-#data "template_file" "init" {
-##  template = "digitalocean_volume.bedrock.$${foo}.id"
-#  template = "$$foo.${count.index}"
-#  vars {
-#    foo = "${var.vol_ids}"
-#  }
-#}
-
-
-
-
-
-##################################################################################################################
 # Create the droplet
 ##################################################################################################################
 resource "digitalocean_droplet" "docker_swarm_node" {
-#  depends_on  = ["${var.vol_ids[count.index]}"]
   count       = "${var.count}"
-  name        = "${format("${var.swarm_name}-${var.node_type}-%02d", count.index)}"
+  region      = "${var.region}"
+  name        = "${format("${var.system_name}-${var.node_type}-${var.index}")}"
+  description = "${var.droplet_description}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
-  region      = "${element(var.region, count.index)}"
 #  volume_ids  = ["${element(var.vol_ids, count.index)}"]
 #  volume_ids  = ["${var.vol_ids}"]
 #  volume_ids  = ["${digitalocean_manager_volume.*.id[count.index]}"]
@@ -45,7 +22,7 @@ resource "digitalocean_droplet" "docker_swarm_node" {
 #cloud-config
 
 ssh_authorized_keys:
-  - "${file("../../${var.public_key}")}"
+  - "${file("../../../../${var.public_key}")}"
 coreos:
   units:
     - name: rpc-statd.service
@@ -56,7 +33,7 @@ EOF
   private_networking = false
   connection {
     user        = "${var.droplet_user}"
-    private_key = "${file("../../${var.private_key}")}"
+    private_key = "${file("../../../../${var.private_key}")}"
     agent       = false
   }
 
@@ -64,18 +41,18 @@ EOF
   # Setup ssh connections
   #########################
   provisioner "local-exec" {
-    command = "mkdir -p ${path.module}/../../data/hosts && printf ${self.ipv4_address} > ${path.module}/../../data/hosts/${self.name}"
+    command = "mkdir -p ../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
   }
 
   #########################
   # Connect to docker swarm
   #########################
   provisioner "file" {
-    source = "../../data/manager.token"
+    source = "../../../../data/manager.token"
     destination = "${var.swarm_token_dir}/manager.token"
   }
   provisioner "file" {
-    source = "../../data/worker.token"
+    source = "../../../../data/worker.token"
     destination = "${var.swarm_token_dir}/worker.token"
   }
 
@@ -89,14 +66,14 @@ EOF
   #########################
   # Setup the volume
   #########################
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)}",
-      "sudo mkdir -p /mnt/storage",
-      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage",
-      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
-    ]
-  }
+#  provisioner "remote-exec" {
+#    inline = [
+#      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)}",
+#      "sudo mkdir -p /mnt/storage",
+#      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage",
+#      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+#    ]
+#  }
 
   #########################
   # Destroy stuff
@@ -109,6 +86,6 @@ EOF
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm -fr ${path.module}/../../data/hosts/${self.name}"
+    command = "rm -fr ../../../../data/hosts/${self.name}"
   }
 }

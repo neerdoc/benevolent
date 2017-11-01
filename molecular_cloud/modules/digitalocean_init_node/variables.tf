@@ -12,7 +12,6 @@ variable "droplet_user" {
 
 variable "region" {
   description = "Region of droplet."
-  type        = "list"
 }
 
 variable "ssh_key_list" {
@@ -32,6 +31,10 @@ variable "private_key" {
   description = "Private key."
 }
 
-variable "swarm_name" {
+variable "system_name" {
   description = "Name of the swarm."
+}
+
+variable "index" {
+  description = "Index number of the node."
 }

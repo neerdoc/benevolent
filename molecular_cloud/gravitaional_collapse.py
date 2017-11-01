@@ -30,6 +30,7 @@ args = parser.parse_args()
 # Global variables
 solar_system = {}
 planet_tracks = []
+destroy_tracks = []
 data_dir = 'data'
 
 
@@ -63,11 +64,26 @@ def get_solar_system():
 
 # Create all the planets with correct variables.
 def plan_collapse():
-    global planet_tracks
+    global planet_tracks, destroy_tracks
+    base_dir = getcwd()
     for key, planet in solar_system['planets'].items():
         for moon in range(0, planet['count']):
+            # Check for condition first
+            if 'condition' in planet:
+                condition = planet['condition']
+                # Try replacing all variables in the condition
+                for agency, orbit in solar_system['sun'].items():
+                    if 'default' in orbit:
+                        condition = condition.replace('{' + agency + '}',
+                                                      str(orbit['default']))
+                if path.isfile(base_dir + '/' + condition):
+                    print(Fore.MAGENTA + "Condition found! Skipping " +
+                          Fore.CYAN + key + Fore.MAGENTA + "." + Fore.RESET)
+                    break
             # Create a directory
             target_dir = data_dir + '/planets/' + key + '/{:02}'.format(moon)
+            if 'temporary' in planet:
+                destroy_tracks.append(target_dir)
             planet_tracks.append(target_dir)
             # Copy the files to it
             src_dir = 'protoplanets/' + key
@@ -125,12 +141,13 @@ def execute_terraform(base_dir, planet, action, tf):
 # Countdown function
 def check_for_sleep(roll):
     print("")
-    for count_down in range(roll * 60, 0, -1):
-        print("\r" + Fore.MAGENTA + str(count_down) + Fore.RESET +
-              " seconds to go.", end='')
-        sleep(1)
-    print("\r" + Fore.MAGENTA + "0" + Fore.RESET +
-          " seconds to go.")
+    if roll:
+        for count_down in range(roll * 60, 0, -1):
+            print("\r" + Fore.MAGENTA + str(count_down) + Fore.RESET +
+                  " seconds to go.", end='')
+            sleep(1)
+        print("\r" + Fore.MAGENTA + "0" + Fore.RESET +
+              " seconds to go.")
 
 
 # Execute terraform for all planned planets
@@ -142,8 +159,9 @@ def perform_terraforming(action, auto=False, roll=0):
                        'Are you sure you want to destroy everything?!\n\
 Anything other than "yes" will exit!')
         if choice != 'yes':
-            print(Fore.RED + 'Ufa! That was close!')
+            print(Fore.RED + 'Ufa! That was close!' + Fore.RESET)
             exit(0)
+        print(Fore.RESET)
         for planet in reversed(planet_tracks):
             execute_terraform(base_dir=base_dir,
                               planet=planet,
@@ -160,11 +178,25 @@ Anything other than "yes" will exit!')
                               action=action,
                               tf=tf)
             check_for_sleep(roll)
+        # Now check destroy_tracks
+        for planet in destroy_tracks:
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action='destroy',
+                              tf=tf)
+            check_for_sleep(roll)
     else:
         for planet in planet_tracks:
             execute_terraform(base_dir=base_dir,
                               planet=planet,
                               action=action,
+                              tf=tf)
+            check_for_sleep(roll)
+        # Now check destroy_tracks
+        for planet in destroy_tracks:
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action='destroy',
                               tf=tf)
             check_for_sleep(roll)
 
