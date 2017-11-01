@@ -10,11 +10,20 @@ from os import makedirs, path, listdir, chdir, getcwd
 from shutil import copyfile
 from python_terraform import Terraform, IsNotFlagged
 import argparse
+from time import sleep
 
 # Parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("action", help="action to be performed by terraform, i.e.,\
  init/get/plan/apply/destroy")
+parser.add_argument("-na", "--noauto",
+                    help="prevent automatic run of init before apply",
+                    action="store_true")
+parser.add_argument("-r", "--roll_delay",
+                    type=int,
+                    help="run commands in rolling with delay in between them\
+ the delay is set in minutes")
+
 args = parser.parse_args()
 
 
@@ -102,34 +111,70 @@ def check_terraform(data):
     return False
 
 
+# Perform terraforming
+def execute_terraform(base_dir, planet, action, tf):
+    print('Terraforming ' + Fore.CYAN + planet + Fore.RESET)
+    chdir(base_dir + '/' + planet)
+    check_terraform(getattr(tf, action)(
+        '',
+        no_color=IsNotFlagged,
+        capture_output=False
+    ))
+
+
+# Countdown function
+def check_for_sleep(roll):
+    print("")
+    for count_down in range(roll * 60, 0, -1):
+        print("\r" + Fore.MAGENTA + str(count_down) + Fore.RESET +
+              " seconds to go.", end='')
+        sleep(1)
+    print("\r" + Fore.MAGENTA + "0" + Fore.RESET +
+          " seconds to go.")
+
+
 # Execute terraform for all planned planets
-def perform_terraforming(action):
+def perform_terraforming(action, auto=False, roll=0):
     tf = Terraform()
     base_dir = getcwd()
-    print('PWD = ')
-    print(base_dir)
-    for planet in planet_tracks:
-        print('Terraforming ' + Fore.CYAN + planet + Fore.RESET)
-        chdir(base_dir + '/' + planet)
-        if action == 'destroy':
-            choice = input(Fore.RED +
-                           'Are you sure you want to destroy everything?!\n\
+    if action == 'destroy':
+        choice = input(Fore.RED +
+                       'Are you sure you want to destroy everything?!\n\
 Anything other than "yes" will exit!')
-            if choice != 'yes':
-                print(Fore.RED + 'Ufa! That was close!')
-                exit(0)
-        check_terraform(getattr(tf, action)(
-            '',
-            no_color=IsNotFlagged,
-            capture_output=False
-        ))
+        if choice != 'yes':
+            print(Fore.RED + 'Ufa! That was close!')
+            exit(0)
+        for planet in reversed(planet_tracks):
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action=action,
+                              tf=tf)
+    elif action == 'apply' and auto:
+        for planet in planet_tracks:
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action='init',
+                              tf=tf)
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action=action,
+                              tf=tf)
+            check_for_sleep(roll)
+    else:
+        for planet in planet_tracks:
+            execute_terraform(base_dir=base_dir,
+                              planet=planet,
+                              action=action,
+                              tf=tf)
+            check_for_sleep(roll)
 
 
 # Main function. Keep it clean.
 def main():
     get_solar_system()
     plan_collapse()
-    perform_terraforming(args.action)
+    print(args)
+    perform_terraforming(args.action, not args.noauto, args.roll_delay)
 
 
 # Main body

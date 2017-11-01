@@ -6,7 +6,7 @@ provider "digitalocean" {
 }
 
 ################################################################################
-# Create permanent manager nodes volumes
+# Create manager nodes volumes
 ################################################################################
 module "digitalocean_manager_volume" {
   source              = "../../../../modules/digitalocean_volume"
@@ -20,7 +20,7 @@ module "digitalocean_manager_volume" {
 }
 
 ################################################################################
-# Create permanent manager nodes
+# Create manager nodes
 ################################################################################
 #module "digitalocean_manager_node" {
 #  source = "../../modules/digitalocean_node"

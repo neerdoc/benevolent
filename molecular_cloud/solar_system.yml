@@ -41,7 +41,7 @@ planets:
       - system_name
       - public_key
   swarm-manager:
-    count: 2
+    count: 3
     variables:
       - do_token
       - system_name
