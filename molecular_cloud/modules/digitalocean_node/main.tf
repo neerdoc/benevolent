@@ -5,11 +5,9 @@ resource "digitalocean_droplet" "docker_swarm_node" {
   count       = "${var.count}"
   region      = "${var.region}"
   name        = "${format("${var.system_name}-${var.node_type}-${var.index}")}"
-#  description = "${var.droplet_description}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
   volume_ids  = ["${var.volume_id}"]
-#  volume_name = "${var.volume_name}"
   ssh_keys    = ["${var.ssh_key_list}"]
   user_data   = <<EOF
 #cloud-config
@@ -74,11 +72,14 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force || true && sleep 10"
+      "docker node demote ${self.name}",
+      "docker swarm leave --force || true",
+      "sleep 10"
     ]
   }
+  # Make sure another node can be reached as master!
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm -fr ../../../../data/hosts/${self.name}"
+    command = "rm -fr ../../../../data/hosts/${self.name} && find ../../../../data/hosts/ -name '${var.system_name}-*er-*' -exec cat {} > ../../../../data/hosts/${var.system_name}-00 \\; -quit"
   }
 }

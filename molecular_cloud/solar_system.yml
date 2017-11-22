@@ -41,6 +41,10 @@ sun:
   swarm_token_dir:
     description:  "Directory to store swarm tokens in the droplets."
     default:      /home/core
+  syncthing_conf_dir:
+    description:  "This is the local directory where you configure syncthing."
+  syncthing_data_dir:
+    description:  "This is the local directory where you want to store the data."
 
 ################################################################################
 #### Define all the planets here. Each one will be created accordingly.
@@ -82,7 +86,7 @@ planets:
       - droplet_user
       - swarm_token_dir
   swarm-worker:
-    count: 2
+    count: 0
     variables:
       - do_token
       - system_name
@@ -95,3 +99,8 @@ planets:
       - droplet_image
       - droplet_user
       - swarm_token_dir
+  syncthing-local:
+    count: 0
+    variables:
+      - syncthing_conf_dir
+      - syncthing_data_dir

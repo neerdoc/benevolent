@@ -33,6 +33,11 @@ EOF
   provisioner "local-exec" {
     command = "mkdir -p ../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
   }
+  # Make sure another node can be reached as master!
+  provisioner "local-exec" {
+    when = "destroy"
+    command = "rm -fr ../../../../data/hosts/${self.name} && find ../../../../data/hosts/ -name '${var.system_name}-*er-*' -exec cat {} > ../../../../data/hosts/${self.name} \\; -quit"
+  }
 
   #########################
   # Create docker swarm
@@ -47,7 +52,9 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force && sleep 10"
+      "docker node demote ${self.name}",
+      "docker swarm leave --force || :",
+      "sleep 10"
     ]
   }
   provisioner "local-exec" {
