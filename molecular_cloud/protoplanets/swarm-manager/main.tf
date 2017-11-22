@@ -4,6 +4,12 @@
 provider "digitalocean" {
   token = "${var.do_token}"
 }
+# We need data from the account setup
+data "terraform_remote_state" "digitalocean" {
+  backend = "local"
+  config {
+    path = "../../account/00/terraform.tfstate"  }
+}
 
 ################################################################################
 # Create manager nodes volumes
@@ -27,14 +33,12 @@ module "digitalocean_manager_node" {
   count               = 1
   index               = "${var.index}"
   node_type           = "manager"
-  droplet_size        = "${var.do_agent_size}"
-  droplet_image       = "${var.do_image}"
-  droplet_user        = "${var.do_user}"
+  droplet_size        = "${var.droplet_size}"
+  droplet_image       = "${var.droplet_image}"
+  droplet_user        = "${var.droplet_user}"
   region              = "${var.region}"
-  vol_ids             = ["${module.digitalocean_manager_volume.ids}"]
-  vol_names           = ["${module.digitalocean_manager_volume.names}"]
-#  volume_size         = "${var.swarm_volume_size}"
-#  volume_description  = "${format("Syncthing volume for ${var.swarm_name}.")}"
+  volume_id           = "${module.digitalocean_manager_volume.id}"
+  volume_name         = "${module.digitalocean_manager_volume.name}"
   public_key          = "${var.public_key}"
   ssh_key_list        = [
   "${data.terraform_remote_state.digitalocean.ssh_key_id}",

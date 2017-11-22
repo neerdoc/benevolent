@@ -5,24 +5,17 @@ resource "digitalocean_droplet" "docker_swarm_node" {
   count       = "${var.count}"
   region      = "${var.region}"
   name        = "${format("${var.system_name}-${var.node_type}-${var.index}")}"
-  description = "${var.droplet_description}"
+#  description = "${var.droplet_description}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
-#  volume_ids  = ["${element(var.vol_ids, count.index)}"]
-#  volume_ids  = ["${var.vol_ids}"]
-#  volume_ids  = ["${digitalocean_manager_volume.*.id[count.index]}"]
-#  vol_id      = "${digitalocean_volume.bedrock.*.id[count.index]}"
-#  vol_name    = "${digitalocean_volume.bedrock.*.name[count.index]}"
-#  volume_ids  = ["${var.vol_id}"]
-#  volume_ids  = ["${data.template_file.init.rendered}"]
-#  volume_ids  = ["${digitalocean_volume.bedrock.*.id[count.index]}"]
-#  volume_ids  = ["${digitalocean_volume.bedrock.[count.index].id}"]
+  volume_ids  = ["${var.volume_id}"]
+#  volume_name = "${var.volume_name}"
   ssh_keys    = ["${var.ssh_key_list}"]
   user_data   = <<EOF
 #cloud-config
 
 ssh_authorized_keys:
-  - "${file("../../../../${var.public_key}")}"
+  - "${file("${var.public_key}")}"
 coreos:
   units:
     - name: rpc-statd.service
@@ -33,7 +26,7 @@ EOF
   private_networking = false
   connection {
     user        = "${var.droplet_user}"
-    private_key = "${file("../../../../${var.private_key}")}"
+    private_key = "${file("${var.private_key}")}"
     agent       = false
   }
 
@@ -66,14 +59,14 @@ EOF
   #########################
   # Setup the volume
   #########################
-#  provisioner "remote-exec" {
-#    inline = [
-#      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)}",
-#      "sudo mkdir -p /mnt/storage",
-#      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage",
-#      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
-#    ]
-#  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name}",
+      "sudo mkdir -p /mnt/storage",
+      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage",
+      "echo /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+    ]
+  }
 
   #########################
   # Destroy stuff
@@ -81,7 +74,7 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force && sleep 10"
+      "docker swarm leave --force || true && sleep 10"
     ]
   }
   provisioner "local-exec" {

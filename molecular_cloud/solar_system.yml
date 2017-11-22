@@ -54,7 +54,7 @@ planets:
       - public_key
   swarm-init:
     count: 1
-    condition: "data/hosts/{system_name}-00"
+    condition: "../../../../data/hosts/{system_name}-00"
     temporary: True
     variables:
       - do_token
@@ -68,7 +68,7 @@ planets:
       - droplet_user
       - swarm_token_dir
   swarm-manager:
-    count: 0
+    count: 2
     variables:
       - do_token
       - system_name
@@ -77,3 +77,21 @@ planets:
       - volume_size
       - index
       - region
+      - droplet_size
+      - droplet_image
+      - droplet_user
+      - swarm_token_dir
+  swarm-worker:
+    count: 2
+    variables:
+      - do_token
+      - system_name
+      - public_key
+      - private_key
+      - volume_size
+      - index
+      - region
+      - droplet_size
+      - droplet_image
+      - droplet_user
+      - swarm_token_dir

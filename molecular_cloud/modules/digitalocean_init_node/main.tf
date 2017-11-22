@@ -31,7 +31,7 @@ EOF
   # Setup ssh connections
   #########################
   provisioner "local-exec" {
-    command = "mkdir -p $../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
+    command = "mkdir -p ../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
   }
 
   #########################
