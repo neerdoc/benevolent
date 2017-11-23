@@ -1,9 +1,9 @@
 ##################################################################################################################
-# Create a local syncthing
+# Create a DNS pointer
 ##################################################################################################################
-module "syncthing_local" {
-  source = "../../../../modules/syncthing"
-  gui = true
-  conf_dir = "${var.syncthing_conf_dir}"
-  data_dir = "${var.syncthing_data_dir}"
+resource "digitalocean_record" "docker_swarm_node" {
+  domain = "${var.domain}"
+  type   = "A"
+  name   = "${var.name}"
+  value  = "${var.ip}"
 }

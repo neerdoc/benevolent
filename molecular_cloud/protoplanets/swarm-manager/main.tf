@@ -48,3 +48,13 @@ module "digitalocean_manager_node" {
   swarm_token_dir     = "${var.swarm_token_dir}"
   manager_address     = "${file("../../../../data/hosts/${var.system_name}-00")}"
 }
+
+################################################################################
+# Create DNS records
+################################################################################
+module "digitalocean_manager_dns" {
+  source              = "../../../../modules/digitalocean_domain"
+  domain              = "${var.domain}"
+  name                = "${module.digitalocean_manager_node.name}"
+  ip                  = "${module.digitalocean_manager_node.ip}"
+}

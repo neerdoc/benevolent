@@ -10,8 +10,8 @@
 set -e
 
 # Extract input values
-eval "$(jq -r '@sh "CONF=\(.conf) GUI=\(.gui) CONTAINER_ID=\(.container_id)"')"
-
+CONF=$1
+GUI=$2
 
 # Define funtion to extract values
 function get_value {
@@ -20,7 +20,7 @@ function get_value {
 }
 
 # Make sure we got a file name that is config.xml
-if ![[ -f "${CONF}" ]];then
+if ! [[ -f "${CONF}" ]];then
   printf "Could not find the config file. Check your paths.\n" >&2
   exit 1
 fi
@@ -36,7 +36,7 @@ fi
 APIKEY=$(get_value "apikey")
 
 # Save outputs
-jq -n --arg apikey "$APIKEY"  --arg what "$CONTAINER_ID" '{"apikey":$apikey, "what":$what}'
+printf $APIKEY
 
 # Restart the container
-docker restart "${CONTAINER_ID}" >/dev/null 2>&1
+#docker restart "${CONTAINER_ID}" >/dev/null 2>&1
