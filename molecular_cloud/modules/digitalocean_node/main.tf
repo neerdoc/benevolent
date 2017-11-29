@@ -62,7 +62,8 @@ EOF
       "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name}",
       "sudo mkdir -p /mnt/storage",
       "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage",
-      "echo /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+      "echo /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab",
+      "sudo chown -R core:core /mnt/storage"
     ]
   }
 

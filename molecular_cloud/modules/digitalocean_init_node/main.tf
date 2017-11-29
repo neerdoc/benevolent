@@ -52,9 +52,9 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker node demote ${self.name}",
+      "docker node demote ${self.name}|| :",
       "docker swarm leave --force || :",
-      "sleep 10"
+      "docker node rm ${self.name}|| :"
     ]
   }
   provisioner "local-exec" {
