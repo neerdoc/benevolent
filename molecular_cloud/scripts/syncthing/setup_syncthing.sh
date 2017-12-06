@@ -35,6 +35,8 @@ if [[ $? != 0 ]];then
     -v $DIR/data:/var/syncthing/Sync \
     -u $USER \
     $IMG
+  # Wait for container to start properly!
+  sleep 10
 fi
 
 # Update settings

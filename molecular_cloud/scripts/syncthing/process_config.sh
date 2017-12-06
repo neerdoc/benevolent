@@ -33,6 +33,10 @@ fi
 sed -i -- 's/<globalAnnounceEnabled>true<\/globalAnnounceEnabled>/<globalAnnounceEnabled>false<\/globalAnnounceEnabled>/g' "${CONF}"
 sed -i -- 's/<localAnnounceEnabled>true<\/localAnnounceEnabled>/<localAnnounceEnabled>false<\/localAnnounceEnabled>/g' "${CONF}"
 
+# Make sure the folder is correct
+sed -i -- 's|path="\([a-zA-Z0-9/\.]*\)"|path="/var/syncthing/Sync"|g' "${CONF}"
+#sed -i -- 's|rescanIntervalS=".*"|rescanIntervalS="60"|g' "${CONF}"
+
 # Change the port NOT NEEDED?
 #sed -i -- 's/<listenAddress>default</listenAddress>/<listenAddress>tcp://0.0.0.0:21000</listenAddress>/g' "${CONF}"
 
