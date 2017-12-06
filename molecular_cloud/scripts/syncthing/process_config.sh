@@ -9,15 +9,12 @@
 # Exit if any of the intermediate steps fail
 set -e
 
+# Define funtions
+source functions
+
 # Extract input values
 CONF=$1
 GUI=$2
-
-# Define funtion to extract values
-function get_value {
-    KEY="${1}"
-    echo $(grep "<${KEY}>" "${CONF}" | sed -e 's,.*<'${KEY}'>\([^<]*\)</'${KEY}'>.*,\1,g')
-}
 
 # Make sure we got a file name that is config.xml
 if ! [[ -f "${CONF}" ]];then
@@ -32,11 +29,17 @@ else
   sed -i -- 's/gui enabled="true"/gui enabled="false"/g' "${CONF}"
 fi
 
+# Turn off discovery
+sed -i -- 's/<globalAnnounceEnabled>true<\/globalAnnounceEnabled>/<globalAnnounceEnabled>false<\/globalAnnounceEnabled>/g' "${CONF}"
+sed -i -- 's/<localAnnounceEnabled>true<\/localAnnounceEnabled>/<localAnnounceEnabled>false<\/localAnnounceEnabled>/g' "${CONF}"
+
+# Change the port NOT NEEDED?
+#sed -i -- 's/<listenAddress>default</listenAddress>/<listenAddress>tcp://0.0.0.0:21000</listenAddress>/g' "${CONF}"
+
+# Get the ID key
+ID=$(get_block_value "device" "id")
 # Get the API key
-APIKEY=$(get_value "apikey")
+API=$(get_key_value "apikey")
 
 # Save outputs
-printf $APIKEY
-
-# Restart the container
-#docker restart "${CONTAINER_ID}" >/dev/null 2>&1
+printf $ID

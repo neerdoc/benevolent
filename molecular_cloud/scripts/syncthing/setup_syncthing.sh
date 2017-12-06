@@ -25,6 +25,7 @@ fi
 # Check if syncthing container is running
 mkdir -p $DIR/conf
 mkdir -p $DIR/data
+USER=$(id -u)
 exist_container=$(docker ps | grep $IMG)
 if [[ $? != 0 ]];then
   docker run -d \
@@ -32,23 +33,15 @@ if [[ $? != 0 ]];then
     -p $HIGH_EXTERNAL:$HIGH_INTERNAL \
     -v $DIR/conf:/var/syncthing/config \
     -v $DIR/data:/var/syncthing/Sync \
+    -u $USER \
     $IMG
 fi
 
-# Get container ID
-CONTAINER_ID=$(docker ps |grep syncthing/syncthing:v0.14.39 |awk '{print $1}')
-
 # Update settings
-RES=$(./process_config.sh $DIR/conf/config.xml $GUI)
-
-# Add all remote devices
-for file in data/hosts/*-er-*;do
-  add_device $file
-done
-
-
-printf "ID = $CONTAINER_ID\n"
+RES=$(./process_config.sh $DIR/conf/config.xml $GUI|awk '{print $1}')
 printf "KEY = $RES\n"
 
+# Get container ID
+CONTAINER_ID=$(docker ps |grep $IMG |awk '{print $1}')
 # Restart contianer with correct settings
 docker restart "${CONTAINER_ID}" >/dev/null 2>&1
