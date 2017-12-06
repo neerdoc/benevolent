@@ -56,7 +56,7 @@ planets:
       - public_key
   swarm-init:
     count: 1
-    condition: "../../../../data/hosts/{system_name}-00"
+    condition: "../../../../data/manager.token"
     temporary: True
     variables:
       - do_token
