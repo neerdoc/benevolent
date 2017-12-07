@@ -34,6 +34,7 @@ if [[ $? != 0 ]];then
     -v $DIR/conf:/var/syncthing/config \
     -v $DIR/data:/var/syncthing/Sync \
     -u $USER \
+    --restart always \
     $IMG
   # Wait for container to start properly!
   sleep 10
