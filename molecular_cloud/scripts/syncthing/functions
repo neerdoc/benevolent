@@ -12,7 +12,12 @@ function get_key_value {
 function get_block_value {
     KEY="${1}"
     FIELD="${2}"
-    echo $(grep "<${KEY}" "${CONF}" | sed -e 's,.*<'${KEY}'\([^<]*\)</'${KEY}'>.*,\1,g' | sed -e 's,.*'${FIELD}=\"'\([^\"]*\)'\"'.*,\1,g')
+    BEFORE="${3}"
+    if [[ "$#" -gt 2 ]];then
+      echo $(grep -B1 "${BEFORE}" "${CONF}" | grep "<${KEY}" | sed -e 's,.*<'${KEY}'\([^<]*\)</'${KEY}'>.*,\1,g' | sed -e 's,.*'${FIELD}=\"'\([^\"]*\)'\"'.*,\1,g')
+    else
+      echo $(grep "<${KEY}" "${CONF}" | sed -e 's,.*<'${KEY}'\([^<]*\)</'${KEY}'>.*,\1,g' | sed -e 's,.*'${FIELD}=\"'\([^\"]*\)'\"'.*,\1,g')
+    fi
 }
 
 # Funtion to add devices to the syncthing pool

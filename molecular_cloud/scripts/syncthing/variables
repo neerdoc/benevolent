@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 IMG=syncthing/syncthing:v0.14.39
-LOCAL_DIR=~/work/syncthing
+LOCAL_DIR=/mnt/storage
 REMOTE_DIR=/mnt/storage
 LOW_INTERNAL=8384
 HIGH_INTERNAL=22000

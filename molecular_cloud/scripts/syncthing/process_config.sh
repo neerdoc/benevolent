@@ -35,13 +35,9 @@ sed -i -- 's/<localAnnounceEnabled>true<\/localAnnounceEnabled>/<localAnnounceEn
 
 # Make sure the folder is correct
 sed -i -- 's|path="\([a-zA-Z0-9/\.]*\)"|path="/var/syncthing/Sync"|g' "${CONF}"
-#sed -i -- 's|rescanIntervalS=".*"|rescanIntervalS="60"|g' "${CONF}"
-
-# Change the port NOT NEEDED?
-#sed -i -- 's/<listenAddress>default</listenAddress>/<listenAddress>tcp://0.0.0.0:21000</listenAddress>/g' "${CONF}"
 
 # Get the ID key
-ID=$(get_block_value "device" "id")
+ID=$(get_block_value "device" "id" "<address>dynamic</address>")
 # Get the API key
 API=$(get_key_value "apikey")
 
