@@ -3,28 +3,16 @@ variable "count" {
   default = 0
 }
 
-#variable "initial" {
-#  description = "Set to true if this is the first master node."
-#  default     = false
-#}
-
-#variable "master" {
-#  description = "Set to true if this is a master node."
-#  default     = false
-#}
-
 variable "node_type" {
   description = "Type of node. manager or worker"
 }
 
-variable "vol_ids" {
+variable "volume_id" {
   description = "Place holder for volume id."
-  type        = "list"
 }
 
-variable "vol_names" {
+variable "volume_name" {
   description = "Place holder for volume name."
-  type        = "list"
 }
 
 variable "manager_address" {
@@ -45,17 +33,7 @@ variable "droplet_user" {
 
 variable "region" {
   description = "Region of droplet."
-  type        = "list"
 }
-
-#variable "volume_size" {
-#  description = "Size of persistent disk in GB."
-#  default     = 1
-#}
-
-#variable "volume_description" {
-#  description = "Description of volume."
-#}
 
 variable "swarm_token_dir" {
   description = "Directory to store token on remote host."
@@ -69,11 +47,15 @@ variable "private_key" {
   description = "Private key."
 }
 
-variable "swarm_name" {
+variable "system_name" {
   description = "Name of the swarm."
 }
 
 variable "ssh_key_list" {
   description = "List of approved ssh keys."
   type        = "list"
+}
+
+variable "index" {
+  description = "Index number of the node."
 }

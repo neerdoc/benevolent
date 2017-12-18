@@ -1,51 +1,19 @@
 ##################################################################################################################
-# Create the disk
-##################################################################################################################
-#resource "digitalocean_volume" "bedrock" {
-#  count       = "${var.count}"
-#  region      = "${element(var.region, count.index)}"
-#  name        = "${format("${var.swarm_name}-bedrock-${var.node_type}-%02d", count.index)}"
-#  size        = "${var.volume_size}"
-#  description = "${var.volume_description}"
-#}
-
-#data "template_file" "init" {
-##  template = "digitalocean_volume.bedrock.$${foo}.id"
-#  template = "$$foo.${count.index}"
-#  vars {
-#    foo = "${var.vol_ids}"
-#  }
-#}
-
-
-
-
-
-##################################################################################################################
 # Create the droplet
 ##################################################################################################################
 resource "digitalocean_droplet" "docker_swarm_node" {
-#  depends_on  = ["${var.vol_ids[count.index]}"]
   count       = "${var.count}"
-  name        = "${format("${var.swarm_name}-${var.node_type}-%02d", count.index)}"
+  region      = "${var.region}"
+  name        = "${format("${var.system_name}-${var.node_type}-${var.index}")}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
-  region      = "${element(var.region, count.index)}"
-#  volume_ids  = ["${element(var.vol_ids, count.index)}"]
-#  volume_ids  = ["${var.vol_ids}"]
-#  volume_ids  = ["${digitalocean_manager_volume.*.id[count.index]}"]
-#  vol_id      = "${digitalocean_volume.bedrock.*.id[count.index]}"
-#  vol_name    = "${digitalocean_volume.bedrock.*.name[count.index]}"
-#  volume_ids  = ["${var.vol_id}"]
-#  volume_ids  = ["${data.template_file.init.rendered}"]
-#  volume_ids  = ["${digitalocean_volume.bedrock.*.id[count.index]}"]
-#  volume_ids  = ["${digitalocean_volume.bedrock.[count.index].id}"]
+  volume_ids  = ["${var.volume_id}"]
   ssh_keys    = ["${var.ssh_key_list}"]
   user_data   = <<EOF
 #cloud-config
 
 ssh_authorized_keys:
-  - "${file("../../${var.public_key}")}"
+  - "${file("${var.public_key}")}"
 coreos:
   units:
     - name: rpc-statd.service
@@ -56,7 +24,7 @@ EOF
   private_networking = false
   connection {
     user        = "${var.droplet_user}"
-    private_key = "${file("../../${var.private_key}")}"
+    private_key = "${file("${var.private_key}")}"
     agent       = false
   }
 
@@ -64,18 +32,18 @@ EOF
   # Setup ssh connections
   #########################
   provisioner "local-exec" {
-    command = "mkdir -p ${path.module}/../../data/hosts && printf ${self.ipv4_address} > ${path.module}/../../data/hosts/${self.name}"
+    command = "mkdir -p ../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
   }
 
   #########################
   # Connect to docker swarm
   #########################
   provisioner "file" {
-    source = "../../data/manager.token"
+    source = "../../../../data/manager.token"
     destination = "${var.swarm_token_dir}/manager.token"
   }
   provisioner "file" {
-    source = "../../data/worker.token"
+    source = "../../../../data/worker.token"
     destination = "${var.swarm_token_dir}/worker.token"
   }
 
@@ -91,10 +59,11 @@ EOF
   #########################
   provisioner "remote-exec" {
     inline = [
-      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)}",
+      "sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name}",
       "sudo mkdir -p /mnt/storage",
-      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage",
-      "echo /dev/disk/by-id/scsi-0DO_Volume_${element(var.vol_names, count.index)} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
+      "sudo mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage",
+      "echo /dev/disk/by-id/scsi-0DO_Volume_${var.volume_name} /mnt/storage ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab",
+      "sudo chown -R core:core /mnt/storage"
     ]
   }
 
@@ -104,11 +73,14 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force && sleep 10"
+      "docker node demote ${self.name}",
+      "docker swarm leave --force || true",
+      "sleep 10"
     ]
   }
+  # Make sure another node can be reached as master!
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm -fr ${path.module}/../../data/hosts/${self.name}"
+    command = "rm -fr ../../../../data/hosts/${self.name} && find ../../../../data/hosts/ -name '${var.system_name}-*er-*' -exec cat {} > ../../../../data/hosts/${var.system_name}-00 \\; -quit"
   }
 }

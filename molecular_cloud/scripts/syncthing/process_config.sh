@@ -9,18 +9,15 @@
 # Exit if any of the intermediate steps fail
 set -e
 
+# Define funtions
+source functions
+
 # Extract input values
-eval "$(jq -r '@sh "CONF=\(.conf) GUI=\(.gui) CONTAINER_ID=\(.container_id)"')"
-
-
-# Define funtion to extract values
-function get_value {
-    KEY="${1}"
-    echo $(grep "<${KEY}>" "${CONF}" | sed -e 's,.*<'${KEY}'>\([^<]*\)</'${KEY}'>.*,\1,g')
-}
+CONF=$1
+GUI=$2
 
 # Make sure we got a file name that is config.xml
-if ![[ -f "${CONF}" ]];then
+if ! [[ -f "${CONF}" ]];then
   printf "Could not find the config file. Check your paths.\n" >&2
   exit 1
 fi
@@ -32,11 +29,17 @@ else
   sed -i -- 's/gui enabled="true"/gui enabled="false"/g' "${CONF}"
 fi
 
+# Turn off discovery
+sed -i -- 's/<globalAnnounceEnabled>true<\/globalAnnounceEnabled>/<globalAnnounceEnabled>false<\/globalAnnounceEnabled>/g' "${CONF}"
+sed -i -- 's/<localAnnounceEnabled>true<\/localAnnounceEnabled>/<localAnnounceEnabled>false<\/localAnnounceEnabled>/g' "${CONF}"
+
+# Make sure the folder is correct
+sed -i -- 's|path="\([a-zA-Z0-9/\.]*\)"|path="/var/syncthing/Sync"|g' "${CONF}"
+
+# Get the ID key
+ID=$(get_block_value "device" "id" "<address>dynamic</address>")
 # Get the API key
-APIKEY=$(get_value "apikey")
+API=$(get_key_value "apikey")
 
 # Save outputs
-jq -n --arg apikey "$APIKEY"  --arg what "$CONTAINER_ID" '{"apikey":$apikey, "what":$what}'
-
-# Restart the container
-docker restart "${CONTAINER_ID}" >/dev/null 2>&1
+printf $ID

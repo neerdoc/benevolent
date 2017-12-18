@@ -1,7 +1,6 @@
-#output "id" {
-#  value = "${digitalocean_droplet.docker_swarm_node.*.id}"
-#}
-
-#output "bedrock_id" {
-#  value = "${digitalocean_volume.bedrock.*.id}"
-#}
+output "ip" {
+  value = "${digitalocean_droplet.docker_swarm_node.ipv4_address}"
+}
+output "name" {
+  value = "${digitalocean_droplet.docker_swarm_node.name}"
+}

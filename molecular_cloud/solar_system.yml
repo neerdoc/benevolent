@@ -11,19 +11,38 @@ sun:
     default:      "skynet"
   public_key:
     description:  "SSH public key file."
-    default:      "data/do-key.pub"
+    default:      "../../../../data/do-key.pub"
   private_key:
     description:  "SSH private key file."
-    default:      "data/do-key"
+    default:      "../../../../data/do-key"
   do_token:
     description:  "Your DigitalOcean API key"
+  domain:
+    description:  "Domain name to create DNS records for."
   region:
     description:  "DigitalOcean Region"
-    type:         "list"
-    default:
+    single:
       - fra1
       - sgp1
       - nyc1
+  volume_size:
+    description:  "Size of the syncronized disks in GB."
+    default:      1
+  index:
+    description:  "Index of the current node. Is set automatically!"
+    auto:         True
+  droplet_size:
+    description:  "Size of the droplets."
+    default:      512mb
+  droplet_image:
+    description:  "Image of the droplets."
+    default:      coreos-alpha
+  droplet_user:
+    description:  "Username for logging in to the droplets."
+    default:      core
+  swarm_token_dir:
+    description:  "Directory to store swarm tokens in the droplets."
+    default:      /home/core
 
 ################################################################################
 #### Define all the planets here. Each one will be created accordingly.
@@ -35,3 +54,47 @@ planets:
       - do_token
       - system_name
       - public_key
+  swarm-init:
+    count: 1
+    condition: "../../../../data/manager.token"
+    temporary: True
+    variables:
+      - do_token
+      - system_name
+      - public_key
+      - private_key
+      - index
+      - region
+      - droplet_size
+      - droplet_image
+      - droplet_user
+      - swarm_token_dir
+  swarm-manager:
+    count: 3
+    variables:
+      - do_token
+      - system_name
+      - public_key
+      - private_key
+      - volume_size
+      - index
+      - region
+      - droplet_size
+      - droplet_image
+      - droplet_user
+      - swarm_token_dir
+      - domain
+  swarm-worker:
+    count: 0
+    variables:
+      - do_token
+      - system_name
+      - public_key
+      - private_key
+      - volume_size
+      - index
+      - region
+      - droplet_size
+      - droplet_image
+      - droplet_user
+      - swarm_token_dir

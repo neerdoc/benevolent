@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+##############################################################
+# Functions
+##############################################################
+# Define funtion to extract values
+function get_key_value {
+    KEY="${1}"
+    echo $(grep "<${KEY}>" "${CONF}" | sed -e 's,.*<'${KEY}'>\([^<]*\)</'${KEY}'>.*,\1,g')
+}
+
+# Define funtion to extract values
+function get_block_value {
+    KEY="${1}"
+    FIELD="${2}"
+    BEFORE="${3}"
+    if [[ "$#" -gt 2 ]];then
+      echo $(grep -B1 "${BEFORE}" "${CONF}" | grep "<${KEY}" | sed -e 's,.*<'${KEY}'\([^<]*\)</'${KEY}'>.*,\1,g' | sed -e 's,.*'${FIELD}=\"'\([^\"]*\)'\"'.*,\1,g')
+    else
+      echo $(grep "<${KEY}" "${CONF}" | sed -e 's,.*<'${KEY}'\([^<]*\)</'${KEY}'>.*,\1,g' | sed -e 's,.*'${FIELD}=\"'\([^\"]*\)'\"'.*,\1,g')
+    fi
+}
+
+# Funtion to add devices to the syncthing pool
+function add_device() {
+  # Get the ID keys of the file
+  ID=$(get_block_value "device" "id")
+
+  # Check if already exists
+  DO_ADD=1
+  for id in ${ID[@]};do
+    if [[ $id == $1 ]];then
+      printf "Alread exists. Skipping.\n"
+      DO_ADD=0
+    fi
+  done
+
+  # Add if it did not exist
+  if [[ $DO_ADD == 1 ]];then
+    printf "Adding device $1\n"
+    awk '/id=\"'$id'\" introducedBy=\"\">/{print;print "        <device id=\"'${1}'\" introducedBy=\"\"></device>";next}1' ${CONF} > ${CONF}.tmp.xml
+    mv ${CONF}.tmp.xml ${CONF}
+    awk '/<gui enabled=\"/{print "\
+    <device id=\"'${1}'\" name=\"'${2}'\" compression=\"metadata\" introducer=\"false\" skipIntroductionRemovals=\"false\" introducedBy=\"\">\n\
+        <address>tcp://'${2}':21000</address>\n\
+        <paused>false</paused>\n\
+    </device>"}1' ${CONF} > ${CONF}.tmp.xml
+    mv ${CONF}.tmp.xml ${CONF}
+  fi
+}
+
+
+# Define copy function
+function remote_copy(){
+  scp -o StrictHostKeyChecking=no \
+      -o NoHostAuthenticationForLocalhost=yes \
+      -o UserKnownHostsFile=/dev/null \
+      -i ../../data/do-key \
+      ${1} \
+      core@${2}
+}
+
+# Define execute function
+function remote_exec(){
+  ssh -o StrictHostKeyChecking=no \
+      -o NoHostAuthenticationForLocalhost=yes \
+      -o UserKnownHostsFile=/dev/null \
+      -i ../../data/do-key \
+      core@${2} \
+      "${1}"
+}

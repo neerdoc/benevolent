@@ -1,18 +1,18 @@
 ##################################################################################################################
 # Create the droplet
 ##################################################################################################################
-resource "digitalocean_droplet" "docker_swarm_temp_node" {
+resource "digitalocean_droplet" "docker_swarm_init_node" {
   count       = 1
-  name        = "${format("${var.swarm_name}-temp-manager-%02d", count.index)}"
+  name        = "${format("${var.system_name}-${var.index}")}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
-  region      = "${element(var.region, count.index)}"
+  region      = "${var.region}"
   ssh_keys    = ["${var.ssh_key_list}"]
   user_data   = <<EOF
 #cloud-config
 
 ssh_authorized_keys:
-  - "${file("../../${var.public_key}")}"
+  - "${file("${var.public_key}")}"
 coreos:
   units:
     - name: rpc-statd.service
@@ -20,12 +20,10 @@ coreos:
       enable: true
 EOF
 
-  #Hm... we will see...
   private_networking = false
-
   connection {
     user        = "${var.droplet_user}"
-    private_key = "${file("../../${var.private_key}")}"
+    private_key = "${file("${var.private_key}")}"
     agent       = false
   }
 
@@ -33,11 +31,12 @@ EOF
   # Setup ssh connections
   #########################
   provisioner "local-exec" {
-    command = "mkdir -p ${path.module}/../../data/hosts && printf ${self.ipv4_address} > ${path.module}/../../data/hosts/${self.name}"
+    command = "mkdir -p ../../../../data/hosts && printf ${self.ipv4_address} > ../../../../data/hosts/${self.name}"
   }
+  # Make sure another node can be reached as master!
   provisioner "local-exec" {
-    when    = "destroy"
-    command = "rm -fr ${path.module}/../../data/hosts/${self.name}"
+    when = "destroy"
+    command = "rm -fr ../../../../data/hosts/${self.name} && find ../../../../data/hosts/ -name '${var.system_name}-*er-*' -exec cat {} > ../../../../data/hosts/${self.name} \\; -quit"
   }
 
   #########################
@@ -53,13 +52,15 @@ EOF
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
-      "docker swarm leave --force && sleep 10"
+      "docker node demote ${self.name}|| :",
+      "docker swarm leave --force || :",
+      "docker node rm ${self.name}|| :"
     ]
   }
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o NoHostAuthenticationForLocalhost=yes -o UserKnownHostsFile=/dev/null -i ../../${var.private_key} ${var.droplet_user}@${self.ipv4_address}:${var.swarm_token_dir}/worker.token ../../data/"
+    command = "scp -o StrictHostKeyChecking=no -o NoHostAuthenticationForLocalhost=yes -o UserKnownHostsFile=/dev/null -i ${var.private_key} ${var.droplet_user}@${self.ipv4_address}:${var.swarm_token_dir}/worker.token ../../../../data/"
   }
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o NoHostAuthenticationForLocalhost=yes -o UserKnownHostsFile=/dev/null -i ../../${var.private_key} ${var.droplet_user}@${self.ipv4_address}:${var.swarm_token_dir}/manager.token ../../data/"
+    command = "scp -o StrictHostKeyChecking=no -o NoHostAuthenticationForLocalhost=yes -o UserKnownHostsFile=/dev/null -i ${var.private_key} ${var.droplet_user}@${self.ipv4_address}:${var.swarm_token_dir}/manager.token ../../../../data/"
     }
 }
