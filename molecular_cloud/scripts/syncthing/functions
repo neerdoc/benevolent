@@ -55,6 +55,7 @@ function remote_copy(){
       -o NoHostAuthenticationForLocalhost=yes \
       -o UserKnownHostsFile=/dev/null \
       -i ../../data/do-key \
+      -q \
       ${1} \
       core@${2}
 }
@@ -65,6 +66,7 @@ function remote_exec(){
       -o NoHostAuthenticationForLocalhost=yes \
       -o UserKnownHostsFile=/dev/null \
       -i ../../data/do-key \
+      -q \
       core@${2} \
       "${1}"
 }

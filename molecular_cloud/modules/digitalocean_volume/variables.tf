@@ -1,7 +1,3 @@
-variable "count" {
-  description = "Count of nodes."
-}
-
 variable "node_type" {
   description = "Type of node. manager or worker"
 }

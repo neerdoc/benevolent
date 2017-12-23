@@ -1,8 +1,3 @@
-variable "count" {
-  description = "Count of nodes."
-  default = 0
-}
-
 variable "node_type" {
   description = "Type of node. manager or worker"
 }

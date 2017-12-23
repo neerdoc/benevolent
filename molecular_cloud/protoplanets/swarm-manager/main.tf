@@ -16,7 +16,6 @@ data "terraform_remote_state" "digitalocean" {
 ################################################################################
 module "digitalocean_manager_volume" {
   source              = "../../../../modules/digitalocean_volume"
-  count               = "1"
   node_type           = "manager"
   region              = "${var.region}"
   volume_size         = "${var.volume_size}"
@@ -30,7 +29,6 @@ module "digitalocean_manager_volume" {
 ################################################################################
 module "digitalocean_manager_node" {
   source              = "../../../../modules/digitalocean_node"
-  count               = 1
   index               = "${var.index}"
   node_type           = "manager"
   droplet_size        = "${var.droplet_size}"

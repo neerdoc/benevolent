@@ -2,7 +2,6 @@
 # Create the droplet
 ##################################################################################################################
 resource "digitalocean_droplet" "docker_swarm_init_node" {
-  count       = 1
   name        = "${format("${var.system_name}-${var.index}")}"
   size        = "${var.droplet_size}"
   image       = "${var.droplet_image}"
@@ -18,6 +17,53 @@ coreos:
     - name: rpc-statd.service
       command: start
       enable: true
+      - name: iptables-restore.service
+        enable: true
+        command: start
+      - name: docker.service
+        command: start
+        enable: true
+write_files:
+  - path: /var/lib/iptables/rules-save
+    permissions: 0644
+    owner: 'root:root'
+    content: |
+      *filter
+      :INPUT DROP [0:0]
+      :FORWARD DROP [0:0]
+      :OUTPUT ACCEPT [0:0]
+      # Accept all loopback (local) traffic:
+      -A INPUT -i lo -j ACCEPT
+
+      # Accept all traffic on the local network from other members of
+      # REMOVED: Since we have no priavte network, disable this.
+      #-A INPUT -i eth1 -j ACCEPT
+
+      # Keep existing connections (like our SSH session) alive:
+      -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+      # Accept all TCP/IP traffic to SSH, HTTP, and HTTPS ports - this should
+      # be customized  for your application:
+      -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+
+      # Accept pings:
+      -A INPUT -p icmp -m icmp --icmp-type 0 -j ACCEPT
+      -A INPUT -p icmp -m icmp --icmp-type 3 -j ACCEPT
+      -A INPUT -p icmp -m icmp --icmp-type 11 -j ACCEPT
+
+      # Accept connections for syncthing
+      -A INPUT -p tcp -m tcp --dport 21000 -j ACCEPT
+
+      # Open up for docker swarm
+      -A INPUT -p tcp -m tcp --dport 2377 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 7946 -j ACCEPT
+      -A INPUT -p udp -m udp --dport 7946 -j ACCEPT
+      -A INPUT -p udp -m udp --dport 4789 -j ACCEPT
+
+
+      COMMIT
 EOF
 
   private_networking = false

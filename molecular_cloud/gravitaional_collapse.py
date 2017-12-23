@@ -76,6 +76,8 @@ def plan_collapse():
                     if 'default' in orbit:
                         condition = condition.replace('{' + agency + '}',
                                                       str(orbit['default']))
+                print(Fore.MAGENTA + "Condition found! base_dir =  " +
+                      base_dir + Fore.RESET)
                 if path.isfile(base_dir + '/' + condition):
                     print(Fore.MAGENTA + "Condition found! Skipping " +
                           Fore.CYAN + key + Fore.MAGENTA + "." + Fore.RESET)
