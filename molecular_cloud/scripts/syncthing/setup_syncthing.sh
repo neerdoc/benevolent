@@ -26,19 +26,34 @@ fi
 mkdir -p $DIR/conf
 mkdir -p $DIR/data
 USER=$(id -u)
-exist_container=$(docker ps | grep $IMG)
-if [[ $? != 0 ]];then
-  docker run -d \
-    -p $LOW_EXTERNAL:$LOW_INTERNAL \
-    -p $HIGH_EXTERNAL:$HIGH_INTERNAL \
-    -v $DIR/conf:/var/syncthing/config \
-    -v $DIR/data:/var/syncthing/Sync \
-    -u $USER \
-    --restart always \
-    $IMG
-  # Wait for container to start properly!
-  sleep 10
-fi
+
+# Check if we are in a swarm
+# docker node ls >/dev/null 2>&1
+# if [[ $? == 0 ]]; then
+#   printf "Found swarm. Deploying stack.\n"
+#   docker stack deploy -c docker-compose.yml syncthing
+#   until docker service ls | grep syncthing_syncthing |awk '{print $4}' | grep 1/1 >/dev/null 2>&1; do
+#     >&2 echo "syncthing is unavailable - sleeping"
+#     sleep 2
+#   done
+#   >&2 echo "syncthing is up!"
+# else
+  exist_container=$(docker ps | grep $IMG)
+  if [[ $? != 0 ]];then
+    docker run -d \
+      -p $LOW_EXTERNAL:$LOW_INTERNAL \
+      -p $HIGH_EXTERNAL:$HIGH_INTERNAL \
+      -v $DIR/conf:/var/syncthing/config \
+      -v $DIR/data:/var/syncthing/Sync \
+      -u $USER \
+      -m "200m" \
+      --cpus=".2" \
+      --restart always \
+      $IMG
+    # Wait for container to start properly!
+    sleep 10
+  fi
+# fi
 
 # Update settings
 RES=$(./process_config.sh $DIR/conf/config.xml $GUI|awk '{print $1}')

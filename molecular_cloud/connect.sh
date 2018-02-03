@@ -30,5 +30,6 @@ ssh \
     -o StrictHostKeyChecking=no \
     -o NoHostAuthenticationForLocalhost=yes \
     -o UserKnownHostsFile=/dev/null \
+    -q \
     -i data/do-key \
     ${SWARM_USER}@${SWARM_IP}

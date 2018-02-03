@@ -23,6 +23,7 @@ for file in ../../data/hosts/*er-*;do
   remote_copy connect_syncthing.sh $IP:
   remote_copy functions $IP:
   remote_copy variables $IP:
+  remote_copy docker-compose.yml $IP:
   ID=$(remote_exec ./setup_syncthing.sh $IP | grep KEY | awk -F'KEY = ' '{print $2}')
   host=$(basename $file)
   printf "$ID#$host.$TF_VAR_domain\n" >> ../../data/syncthing_list

@@ -1,0 +1,19 @@
+version: '3'
+services:
+  syncthing:
+    image: syncthing/syncthing:v0.14.39
+    ports:
+      - 8385:8384
+      - 21000:22000
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 100M
+    volumes:
+      - /mnt/storage/conf:/var/syncthing/config
+      - /mnt/storage/data:/var/syncthing/Sync
+    user: core
