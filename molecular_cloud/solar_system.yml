@@ -33,7 +33,7 @@ sun:
     auto:         True
   droplet_size:
     description:  "Size of the droplets."
-    default:      512mb
+    default:      s-1vcpu-1gb
   droplet_image:
     description:  "Image of the droplets."
     default:      coreos-alpha
@@ -85,7 +85,7 @@ planets:
       - swarm_token_dir
       - domain
   swarm-worker:
-    count: 0
+    count: 1
     variables:
       - do_token
       - system_name
@@ -98,3 +98,4 @@ planets:
       - droplet_image
       - droplet_user
       - swarm_token_dir
+      - domain

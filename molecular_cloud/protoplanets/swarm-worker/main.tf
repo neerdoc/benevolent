@@ -46,6 +46,7 @@ module "digitalocean_worker_node" {
   swarm_token_dir     = "${var.swarm_token_dir}"
   manager_address     = "${file("../../../../data/hosts/${var.system_name}-00")}"
 }
+
 ################################################################################
 # Create DNS records
 ################################################################################
